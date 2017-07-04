@@ -107,7 +107,7 @@ def set_ducktime(chan, conn):
     game_status[conn.name][chan]['masks'] = []
     return
 
-@hook.command("stophunt", autohelp=False)
+@hook.command("stophunt", permissions=["admins"], autohelp=False)
 def stop_hunt(chan, conn):
     """This command stops the duck hunt in your channel. Scores will be preserved"""
     global game_status
@@ -118,22 +118,6 @@ def stop_hunt(chan, conn):
         return "the game has been stopped."
     else:
         return "There is no game running in {}.".format(chan)
-
-@hook.command("duckkick")
-def no_duck_kick(text, chan, conn, notice):
-    """If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
-    global game_status
-    if chan in opt_out:
-        return
-    if text.lower() == 'enable':
-        game_status[conn.name][chan]['no_duck_kick'] = 1
-        return "users will now be kicked for shooting or befriending non-existent ducks. The bot needs to have appropriate flags to be able to kick users for this to work."
-    elif text.lower() == 'disable':
-        game_status[conn.name][chan]['no_duck_kick'] = 0
-        return "kicking for non-existent ducks has been disabled."
-    else:
-        notice(no_duck_kick.__doc__)
-        return
 
 def generate_duck():
     """Try and randomize the duck message so people can't highlight on it/script against it."""
@@ -236,15 +220,21 @@ def bang(nick, chan, message, db, conn, notice):
     network = conn.name
     score = ""
     out = ""
-    miss = ["WHOOSH! You missed the duck completely!", "Your gun jammed!", "Better luck next time.", "WTF!? Who are you Dick Cheney?" ]
+    miss = [
+        "WHOOSH! You missed the duck completely!",
+        "Your gun jammed!", "Better luck next time.",
+        "WTF!? Who are you Dick Cheney?",
+        'Meat is murder!',
+        '"I have a boyfriend!" — the duck.',
+    ]
+    no_duck = [
+        "There is no duck. What are you shooting at?",
+        'I guess trying to bang fantasy ducks is a specificity of yours?',
+    ]
     if not game_status[network][chan]['game_on']:
         return "There is no activehunt right now. Use .starthunt to start a game."
     elif game_status[network][chan]['duck_status'] != 1:
-        if game_status[network][chan]['no_duck_kick'] == 1:
-            out = "KICK {} {} :There is no duck! What are you shooting at?".format(chan, nick)
-            conn.send(out)
-            return
-        return "There is no duck. What are you shooting at?"
+       return random.choice(no_duck)
     else:
         game_status[network][chan]['shoot_time'] = time()
         deploy = game_status[network][chan]['duck_time']
