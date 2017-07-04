@@ -1,0 +1,94 @@
+{
+    "connections": [
+        {
+            "name": "OkQuacker",
+            "connection": {
+                "server": "irc.freenode.net",
+                "port": 6667,
+                "ssl": false,
+                "ignore_cert": true,
+                "password": ""
+            },
+            "nick": "OkQuacker",
+            "user": "OkQuacker",
+            "avoid_notices": false,
+            "channels": [
+            ],
+            "disabled_commands": [],
+            "acls": {},
+            "nickserv": {
+                "enabled": false,
+                "nickserv_password": "",
+                "nickserv_user": "",
+                "nickserv_name": "nickserv",
+                "nickserv_command": "IDENTIFY"
+            },
+            "ratelimit": {
+                "max_tokens": 17.5,
+                "restore_rate": 2.5,
+                "message_cost": 5,
+                "strict": true
+            },
+            "permissions": {
+                "admins": {
+                    "perms": [
+                        "addfactoid",
+                        "delfactoid",
+                        "ignore",
+                        "botcontrol",
+                        "plpaste",
+                        "permissions_users",
+                        "op"
+                    ],
+                    "users": [
+                       "Maravedis!~Maravedis@26.ip-51-254-216.eu"                                                			
+                    ]
+                }
+            },
+            "plugins": {},
+            "command_prefix": ".",
+            "capabilities": [
+                "multi-prefix",
+                "extended-join",
+                "account-notify"
+            ]
+        }
+    ],
+    "api_keys": {
+    },
+    "database": "sqlite:///cloudbot.db",
+    "plugin_loading": {
+        "use_whitelist": true,
+        "blacklist": [
+            "update"
+        ],
+        "whitelist": [
+            "duckhunt",
+	    "admin_bot",
+	    "attacks",
+	    "utility",
+            "log",
+	    "fight", "spank", "jokes"
+            
+            
+       ]
+    },
+    "web": {
+      "enabled": false,
+      "address": "0.0.0.0",
+      "port": 8090,
+      "bot_name": "Quacker"
+    },
+    "reloading": {
+        "config_reloading": true,
+        "plugin_reloading": true
+    },
+    "logging": {
+        "console_debug": true,
+        "file_debug": false,
+        "show_plugin_loading": true,
+        "show_motd": true,
+        "show_server_info": true,
+        "raw_file_log": false
+    }
+}
