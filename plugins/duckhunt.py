@@ -35,15 +35,15 @@ optout = Table(
 
 
 """
-game_status structure 
-{ 
+game_status structure
+{
     'network':{
         '#chan1':{
-            'duck_status':0|1|2, 
-            'next_duck_time':'integer', 
+            'duck_status':0|1|2,
+            'next_duck_time':'integer',
             'game_on':0|1,
             'no_duck_kick': 0|1,
-            'duck_time': 'float', 
+            'duck_time': 'float',
             'shoot_time': 'float',
             'messages': integer,
             'masks' : list
@@ -127,8 +127,6 @@ def generate_duck():
     rb = random.randint(1, len(dbody) - 1)
     dbody = dbody[:rb] + u'\u200b' + dbody[rb:]
     dnoise = random.choice(duck_noise)
-    rn = random.randint(1, len(dnoise) - 1)
-    dnoise = dnoise[:rn] + u'\u200b' + dnoise[rn:]
     return (dtail, dbody, dnoise)
 
 
@@ -177,7 +175,7 @@ def dbadd_entry(nick, chan, db, conn, shoot, friend):
     query = table.insert().values(
         network = conn.name,
         chan = chan.lower(),
-        name = nick.lower(),
+        name = nick,
         shot = shoot,
         befriend = friend)
     db.execute(query)
@@ -189,7 +187,7 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
         query = table.update() \
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower()) \
+            .where(table.c.name == nick) \
             .values(shot = shoot)
         db.execute(query)
         db.commit()
@@ -197,7 +195,7 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
         query = table.update() \
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower()) \
+            .where(table.c.name == nick) \
             .values(befriend = friend)
         db.execute(query)
         db.commit()
@@ -205,7 +203,7 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
         query = table.update() \
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower()) \
+            .where(table.c.name == nick) \
             .values(befriend = friend) \
             .values(shot = shoot)
         db.execute(query)
@@ -259,7 +257,7 @@ def bang(nick, chan, message, db, conn, notice):
         score = db.execute(select([table.c.shot]) \
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower())).fetchone()
+            .where(table.c.name == nick)).fetchone()
         if score:
             score = score[0]
             score += 1
@@ -281,15 +279,22 @@ def befriend(nick, chan, message, db, conn, notice):
     network = conn.name
     out = ""
     score = ""
-    miss = ["The duck didn't want to be friends, maybe next time.", "Well this is awkward, the duck needs to think about it.", "The duck said no, maybe bribe it with some pizza? Ducks love pizza don't they?", "Who knew ducks could be so picky?"]
+    miss = [
+      "The duck didn't want to be friends, maybe next time.",
+      "Well this is awkward, the duck needs to think about it.",
+      "The duck said no, maybe bribe it with some pizza? Ducks love pizza don't they?",
+      "Who knew ducks could be so picky?",
+      'The duck knows about your browser history. Why do you follow u/fucksWithDucks?',
+      'Your reputation precedes you. The duck doesn\'t want to be alone with you.',
+      '"I have been burned before, how do I know I can trust you?" - the duck.',
+    ]
+    no_duck = [
+      "You tried befriending a non-existent duck! Bless your heart.",
+    ]
     if not game_status[network][chan]['game_on']:
         return "There is no hunt right now. Use .starthunt to start a game."
     elif game_status[network][chan]['duck_status'] != 1:
-        if game_status[network][chan]['no_duck_kick'] == 1:
-            out = "KICK {} {} :You tried befriending a non-existent duck, that's fucking creepy.".format(chan, nick)
-            conn.send(out)
-            return
-        return "You tried befriending a non-existent duck, that's fucking creepy."
+        return random.choice(no_duck)
     else:
         game_status[network][chan]['shoot_time'] = time()
         deploy = game_status[network][chan]['duck_time']
@@ -315,7 +320,7 @@ def befriend(nick, chan, message, db, conn, notice):
         score = db.execute(select([table.c.befriend]) \
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower())).fetchone()
+            .where(table.c.name == nick)).fetchone()
         if score:
             score = score[0]
             score += 1
@@ -374,7 +379,7 @@ def friends(text, chan, conn, db):
             return "it appears no on has friended any ducks yet."
 
     topfriends = sorted(friends.items(), key=operator.itemgetter(1), reverse = True)
-    out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v))  for k, v in topfriends])
+    out += ' • '.join(["{}: {}".format(k, str(v))  for k, v in topfriends])
     out = smart_truncate(out)
     return out
 
@@ -417,7 +422,7 @@ def killers(text, chan, conn, db):
             return "it appears no on has killed any ducks yet."
 
     topkillers = sorted(killers.items(), key=operator.itemgetter(1), reverse = True)
-    out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v))  for k, v in topkillers])
+    out += ' • '.join(["{}: {}".format(k, str(v))  for k, v in topkillers])
     out = smart_truncate(out)
     return out
 
@@ -468,7 +473,7 @@ def hunt_opt_out(text, chan, db, conn):
 @hook.command("duckmerge", permissions=["botcontrol"])
 def duck_merge(text, conn, db, message):
     """Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will have their duck scores removed the second will have the first score added. Warning this cannot be undone."""
-    oldnick, newnick = text.lower().split()
+    oldnick, newnick = text.split()
     if not oldnick or not newnick:
         return "Please specify two nicks for this command."
     oldnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
@@ -521,9 +526,9 @@ def duck_merge(text, conn, db, message):
 @hook.command("ducks", autohelp=False)
 def ducks_user(text, nick, chan, conn, db, message):
     """Prints a users duck stats. If no nick is input it will check the calling username."""
-    name = nick.lower()
+    name = nick
     if text:
-        name = text.split()[0].lower()
+        name = text.split()[0]
     ducks = defaultdict(int)
     scores = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
         .where(table.c.network == conn.name)
