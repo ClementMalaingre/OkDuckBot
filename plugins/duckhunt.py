@@ -146,11 +146,7 @@ def deploy_duck(message, bot):
             chan_messages = game_status[network][chan]['messages']
             chan_masks = game_status[network][chan]['masks']
             if active == 1 and duck_status == 0 and next_duck <= time() and chan_messages >= MSG_DELAY and len(chan_masks) >= MASK_REQ:
-                #deploy a duck to channel
-                game_status[network][chan]['duck_status'] = 1
-                game_status[network][chan]['duck_time'] = time()
-                dtail, dbody, dnoise = generate_duck()
-                conn.message(chan, "{}{}{}".format(dtail, dbody, dnoise))
+                spawn_duck(conn, network, chan)
             # Leave this commented out for now. I haven't decided how to make ducks leave.
             #if active == 1 and duck_status == 1 and game_status[network][chan]['flyaway'] <= int(time()):
             #    conn.message(chan, "The duck flew away.")
@@ -158,6 +154,21 @@ def deploy_duck(message, bot):
             #    set_ducktime(chan, conn)
             continue
         continue
+
+@hook.command("spawn", permissions=["admins"], autohelp=False)
+def spawn(chan, conn):
+    global game_status
+    if game_status[conn.name][chan]['game_on'] == 1:
+        spawn_duck(conn, conn.name, chan)
+    else
+        return "No active game."
+
+def spawn_duck(conn, network, chan):
+    global game_status
+    game_status[network][chan]['duck_status'] = 1
+    game_status[network][chan]['duck_time'] = time()
+    dtail, dbody, dnoise = generate_duck()
+    conn.message(chan, "{}{}{}".format(dtail, dbody, dnoise))
 
 
 def hit_or_miss(deploy, shoot):
