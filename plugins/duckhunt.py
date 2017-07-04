@@ -160,7 +160,7 @@ def spawn(chan, conn):
     global game_status
     if game_status[conn.name][chan]['game_on'] == 1:
         spawn_duck(conn, conn.name, chan)
-    else
+    else:
         return "No active game."
 
 def spawn_duck(conn, network, chan):
