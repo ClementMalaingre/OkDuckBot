@@ -1,7 +1,7 @@
 {
     "connections": [
         {
-            "name": "OkQuacker",
+            "name": "Freenode",
             "connection": {
                 "server": "irc.freenode.net",
                 "port": 6667,
@@ -41,7 +41,7 @@
                         "op"
                     ],
                     "users": [
-                       "Maravedis!~Maravedis@26.ip-51-254-216.eu"                                                			
+                       "Maravedis!~Maravedis@26.ip-51-254-216.eu"
                     ]
                 }
             },
@@ -69,8 +69,8 @@
 	    "utility",
             "log",
 	    "fight", "spank", "jokes"
-            
-            
+
+
        ]
     },
     "web": {

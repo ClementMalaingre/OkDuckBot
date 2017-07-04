@@ -558,6 +558,7 @@ def ducks_user(text, nick, chan, conn, db, message):
 def duck_stats(chan, conn, db, message):
     """Prints duck statistics for the entire channel and totals for the network."""
     ducks = defaultdict(int)
+    message("network name is [{}]".format(conn.name))
     scores = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
         .where(table.c.network == conn.name)).fetchall()
     if scores:
