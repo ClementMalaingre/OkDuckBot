@@ -1,7 +1,8 @@
 import random
 import operator
+import pprint
 
-from time import time
+from time import time, ctime
 from collections import defaultdict
 from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc
 from sqlalchemy.sql import select
@@ -52,8 +53,8 @@ game_status structure
 }
 """
 
-MSG_DELAY = 10
-MASK_REQ = 3
+MSG_DELAY = 0
+MASK_REQ = 0
 scripters = defaultdict(int)
 game_status = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
@@ -99,7 +100,7 @@ def start_hunt(bot, chan, message, conn):
 
 def set_ducktime(chan, conn):
     global game_status
-    game_status[conn.name][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
+    game_status[conn.name][chan]['next_duck_time'] = int(time()) #random.randint(int(time()) + 480, int(time()) + 3600)
     #game_status[conn.name][chan]['flyaway'] = game_status[conn.name][chan]['next_duck_time'] + 600
     game_status[conn.name][chan]['duck_status'] = 0
     # let's also reset the number of messages said and the list of masks that have spoken.
@@ -135,9 +136,12 @@ def deploy_duck(message, bot):
     global game_status
     for network in game_status:
         if network not in bot.connections:
+            print("{} not in bot.connections".format(network))
             continue
         conn = bot.connections[network]
         if not conn.ready:
+            print("connection is not ready")
+            print(conn)
             continue
         for chan in game_status[network]:
             active = game_status[network][chan]['game_on']
@@ -162,6 +166,12 @@ def spawn(chan, conn):
         spawn_duck(conn, conn.name, chan)
     else:
         return "No active game."
+
+@hook.command("duckinfo", permissions=["admins"], authohelp=False)
+def duckinfo(conn, chan):
+    global game_status
+    conn.message(chan, "{}".format(game_status))
+
 
 def spawn_duck(conn, network, chan):
     global game_status
